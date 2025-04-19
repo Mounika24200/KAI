@@ -72,30 +72,3 @@ safety_check() {
         [[ "$confirm" =~ ^[Yy]$ ]] || error_exit "Command aborted due to safety concerns."
     fi
 }
-
-# Edit command function
-edit_command() {
-    local cmd="$1"
-    local edited_cmd
-
-    # Allow up to 3 edits
-    for ((i=1; i<=3; i++)); do
-        # Prompt for editing
-        read -rei "$cmd" -p "Edit command (attempt $i/3): " edited_cmd
-
-        # If user doesn't change the command, ask if they want to continue
-        if [[ "$edited_cmd" == "$cmd" ]]; then
-            read -p "No changes made. Continue editing? (y/n): " continue_edit
-            [[ "$continue_edit" =~ ^[Nn]$ ]] && break
-        else
-            # If command is changed, confirm
-            read -p "Use modified command? (y/n): " confirm_edit
-            if [[ "$confirm_edit" =~ ^[Yy]$ ]]; then
-                cmd="$edited_cmd"
-                break
-            fi
-        fi
-    done
-
-    echo "$cmd"
-}
