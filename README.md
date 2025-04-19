@@ -1,5 +1,4 @@
 
-#!/bin/bash
 
 # Constants
 readonly API_MODEL="llama-3.3-70b-versatile"
@@ -100,65 +99,3 @@ edit_command() {
 
     echo "$cmd"
 }
-
-# Main execution function
-main() {
-    # Check for required dependencies
-    for dep in jq curl; do
-        command -v "$dep" >/dev/null 2>&1 || error_exit "$dep is not installed"
-    done
-
-    # Validate and prepare input
-    validate_query "$*"
-
-    # Prepare and fetch commands
-    local payload
-    payload=$(prepare_payload "$*")
-    local response
-    response=$(fetch_commands "$payload")
-
-    # Parse commands
-    local commands
-    commands=$(parse_commands "$response")
-
-    # Convert to array
-    mapfile -t command_array <<< "$commands"
-
-    # Validate commands
-    ((${#command_array[@]} != 5)) &&
-        error_exit "Invalid command format. Expected 5 commands, got ${#command_array[@]}"
-
-    # Display commands with numbers
-    echo "Available commands:"
-    for ((i=0; i<${#command_array[@]}; i++)); do
-        printf "%d. %s\n" $((i+1)) "${command_array[i]}"
-    done
-
-    # Select command
-    while true; do
-        read -p "Select command (1-5): " selection
-        if [[ "$selection" =~ ^[1-5]$ ]]; then
-            selected_cmd="${command_array[$((selection-1))]}"
-            break
-        else
-            echo "Invalid selection. Choose 1-5."
-        fi
-    done
-
-    # Edit command
-    selected_cmd=$(edit_command "$selected_cmd")
-
-    # Safety check
-    safety_check "$selected_cmd"
-
-    # Confirm and execute
-    read -p "Execute '$selected_cmd'? (y/n): " confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        bash -c "$selected_cmd"
-    else
-        echo "Command aborted"
-    fi
-}
-
-# Run main function with all arguments
-main "$@"
